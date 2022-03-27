@@ -1,56 +1,54 @@
-import React from 'react';
-import logo from './logo.svg';
-import { Counter } from './features/counter/Counter';
-import './App.css';
+import appStyles from './App.module.sass';
+import { useGetDogsQuery, useUpdateDogMutation, useDeleteDogMutation } from './redux'
+import { Dog } from './types';
+import DogCard from './components/Dog';
+import Filter from './components/Filter'
+import { useState } from 'react';
+import { dogsApi } from './redux/dogsApi'
 
 function App() {
+
+  const [likedSelector, setLikedSelector] = useState(false);
+
+  const {data = [], isLoading} = useGetDogsQuery();
+  const [deleteDog] = useDeleteDogMutation();
+  const [updateDog] = useUpdateDogMutation();
+
+  const handleDeleteDog = async (id: number) => {
+    await deleteDog(id).unwrap();
+  }
+
+  const handleUpdateDog = async (dog: Dog) => {
+    await updateDog({id: dog.id, like: !dog.like}).unwrap();
+  }
+
+  const getDogsQueryRefetch = dogsApi.endpoints.getDogs.useQuerySubscription().refetch;
+
+  const handleLikedSelector = () => {
+    setLikedSelector(!likedSelector);
+    getDogsQueryRefetch();
+  }
+
+  if (isLoading) return <h1>Loading...</h1>
+
+  const dogs = data.filter(d => likedSelector ? d.like : true).map(({id,img,name,like}) => (<DogCard
+    key={id}
+    id={id} 
+    img={img} 
+    name={name} 
+    like={like} 
+    handleDeleteDog={handleDeleteDog} 
+    handleUpdateDog={handleUpdateDog} />));
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <Counter />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <span>
-          <span>Learn </span>
-          <a
-            className="App-link"
-            href="https://reactjs.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux-toolkit.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux Toolkit
-          </a>
-          ,<span> and </span>
-          <a
-            className="App-link"
-            href="https://react-redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React Redux
-          </a>
-        </span>
-      </header>
+    <div className={appStyles.App}>
+      <Filter likedSelector={likedSelector}
+        handleLikedSelector={handleLikedSelector}/>
+      <div>
+        <ul>
+          {dogs}
+        </ul>
+      </div>
     </div>
   );
 }
