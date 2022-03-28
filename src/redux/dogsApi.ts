@@ -4,10 +4,10 @@ import { Dog } from '../types';
 export const dogsApi = createApi({
     reducerPath: 'dogsApi',
     tagTypes: ['Dogs'],
-    baseQuery: fetchBaseQuery({baseUrl: 'http://localhost:5000/'}),
+    baseQuery: fetchBaseQuery({baseUrl: 'https://prioritet-online.ru/api/dogs'}), //localhost:8688
     endpoints: (builder) => ({
         getDogs: builder.query<Dog[], void>({
-            query: () => 'dogs',
+            query: () => 'all',
             providesTags: (result) =>
         result
           ? [...result.map(({ id }) => ({ type: 'Dogs' as const, id })), 'Dogs']
@@ -15,7 +15,7 @@ export const dogsApi = createApi({
         }),
         updateDog: builder.mutation<Dog, Partial<Dog> & Pick<Dog, 'id'>>({
             query: ({ id, ...data}) => ({
-                url: `dogs/${id}`,
+                url: `updatedog/${id}`,
                 method: 'PATCH',
                 body: data,
             }),
@@ -23,7 +23,7 @@ export const dogsApi = createApi({
         }),
         deleteDog: builder.mutation({
             query: (id) => ({
-                url: `dogs/${id}`,
+                url: `deletedog/${id}`,
                 method: 'DELETE',
             }),
             invalidatesTags: ['Dogs'],
